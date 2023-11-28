@@ -82,7 +82,7 @@
 /* Setting the border of top, bottom, left */
 .card:nth-child(odd)::before {
   left: 0px;
-  top: -5.5px;
+  top: -4.5px;
   bottom: -4.5px;
   border-width: 5px 0 5px 5px;
   border-radius: 50px 0 0 50px;

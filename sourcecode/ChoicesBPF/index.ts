@@ -1,5 +1,6 @@
 import { IInputs, IOutputs } from "./generated/ManifestTypes";
 
+
 export class ChoicesBPF implements ComponentFramework.StandardControl<IInputs, IOutputs> {
     // The PCF context object\
     private context: ComponentFramework.Context<IInputs>;
@@ -46,66 +47,56 @@ export class ChoicesBPF implements ComponentFramework.StandardControl<IInputs, I
 
         // Fetch data from context or parameters
         let choices = context.parameters.Choice.attributes?.Options;
-        let choiceLogicalName = context.parameters.Choice.attributes?.LogicalName;
-        let entityLogicalName = context.parameters.entityName.raw as string;
-        let recordID = context.parameters.entityId.raw as string;
-        var currentValue = 0;
-        context.webAPI.retrieveRecord(entityLogicalName, recordID).then(
-            function(result){
-                currentValue = result[choiceLogicalName!]
-                if (choices != undefined) {
-                    choices.forEach((item, index) => {
-                        // Create the card element
-                        const card = document.createElement("div");
-                        card.classList.add("card");
-                        
-                        // Create the info container
-                        const infoContainer = document.createElement("div");
-                        infoContainer.classList.add("info");
-        
-                        // Create the title element
-                        const title = document.createElement("h3");
-                        title.classList.add("title");
-                        title.innerText = item.Label;
-                        
-                        if (item.Value == currentValue) {
-                            infoContainer.classList.add("active");
-                            title.classList.add("active");
-                        }
-                        // Append elements to the respective containers
-                        infoContainer.appendChild(title);
-                        card.appendChild(infoContainer);
-                        outerContainer.appendChild(card);
-        
-                        // Handle click event for each timeline item
-                        card.addEventListener('click', () => {
-                            // Remove "active" class from all cards
-                            document.querySelectorAll('.title').forEach(function (card) {
-                                card.classList.remove('active');
-                            });
-                            document.querySelectorAll('.info').forEach(function (card) {
-                                card.classList.remove('active');
-                            });
-                            title.classList.add('active');
-                            infoContainer.classList.add('active');
-                            // Update the Choice property value
-                            let data: { [key: string]: any } = {};
-                            data[choiceLogicalName!] = item.Value;
-                            context.webAPI.updateRecord(entityLogicalName, recordID, data).then(
-                                function () {
-                                    console.log("success");
-                                    notifyOutputChanged()
-                                }
-                            );
-                        });
-        
-        
-                    });
+        const selectedValue: number | undefined | null = this.context.parameters.Choice.raw;
+        console.log(selectedValue)
+        if (choices != undefined) {
+            choices.forEach((item, index) => {
+                // Create the card element
+                const card = document.createElement("div");
+                card.classList.add("card");
+
+                // Create the info container
+                const infoContainer = document.createElement("div");
+                infoContainer.classList.add("info");
+
+                // Create the title element
+                const title = document.createElement("h3");
+                title.classList.add("title");
+                title.innerText = item.Label;
+                console.log(item.Value)
+                if (item.Value == selectedValue) {
+                    infoContainer.classList.add("active");
+                    title.classList.add("active");
                 }
-            }
-        )
-        // Fetch and display timeline items
-        
+                // Append elements to the respective containers
+                infoContainer.appendChild(title);
+                card.appendChild(infoContainer);
+                outerContainer.appendChild(card);
+
+                // Handle click event for each timeline item
+                card.addEventListener('click', () => {
+                    // Remove "active" class from all cards
+                    document.querySelectorAll('.title').forEach(function (card) {
+                        card.classList.remove('active');
+                    });
+                    document.querySelectorAll('.info').forEach(function (card) {
+                        card.classList.remove('active');
+                    });
+                    title.classList.add('active');
+                    infoContainer.classList.add('active');
+                    // let data: { [key: string]: any } = {};
+                    // data[choiceLogicalName!] = item.Value;
+                    // Replace the following line:
+                    // context.webAPI.updateRecord(entityLogicalName, recordID, data).then(
+                    // with this line:
+                    context.parameters.Choice.raw = item.Value;
+                    // Notify the framework about the changes
+                    notifyOutputChanged();
+                });
+
+
+            });
+        }
     }
 
 
@@ -123,7 +114,9 @@ export class ChoicesBPF implements ComponentFramework.StandardControl<IInputs, I
      * @returns an object based on nomenclature defined in manifest, expecting object[s] for property marked as “bound” or “output”
      */
     public getOutputs(): IOutputs {
-        return {};
+        return {
+            Choice: this.context.parameters.Choice.raw ?? undefined
+        };
     }
 
     /**
